@@ -1,19 +1,36 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  # server:
-  #   build: .
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - postgres
-  #   restart: on-failure
-  #   networks:
-  #     - mynet
+  # Backend service
+  server:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    restart: on-failure
+    networks:
+      - mynet
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://alexander:admin1234@postgres:5432/sge_2
 
-  # frontend
-  # TODO: Add frontend service
+  # Frontend service
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    restart: on-failure
+    networks:
+      - mynet
 
+  # Postgres service
   postgres:
     image: postgres:13
     environment:
@@ -21,14 +38,12 @@ services:
       - POSTGRES_USER=alexander
       - POSTGRES_PASSWORD=admin1234
     ports:
-      - 5455:5432
+      - "5455:5432"
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
     networks:
       - mynet
 
-# networks:
-#   mynet:
-#     driver: bridge
-#     ipam:
-#       driver: defaults
+networks:
+  mynet:
+    driver: bridge
